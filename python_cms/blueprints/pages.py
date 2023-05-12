@@ -11,3 +11,8 @@ def index():
 @pages_blueprint.route("/about")
 def about():
   return render_template("about.html.j2")
+
+
+@pages_blueprint.route("/add")
+def create_post():
+  return render_template("create_post.html.j2")

@@ -1,10 +1,12 @@
 from flask import Flask
+from os import environ
 from flask_login import LoginManager
 from python_cms.blueprints.pages import pages_blueprint
 from python_cms.blueprints.auth import auth_blueprint
 from python_cms.db import db
 
 from python_cms.models.user import UserModel
+from python_cms.models.post import PostModel
 
 app = Flask(__name__)
 
@@ -15,6 +17,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///data.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 
+app.secret_key = environ.get("SECRET_KEY")
 login_manager = LoginManager()
 login_manager.init_app(app)
 

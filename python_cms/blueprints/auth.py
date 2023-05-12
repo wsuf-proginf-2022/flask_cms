@@ -1,8 +1,10 @@
-from flask import Blueprint, render_template, redirect, request
+from flask import Blueprint, redirect, request, url_for
 import requests
 from oauthlib.oauth2 import WebApplicationClient
 from os import environ
 import json
+from python_cms.models.user import UserModel
+from flask_login import login_user, logout_user
 
 auth_blueprint = Blueprint('auth', __name__)
 
@@ -29,7 +31,7 @@ def login():
   return redirect(request_uri)
 
 
-@auth_blueprint.route("/authroize")
+@auth_blueprint.route("/authorize")
 def authorize():
   code = request.args.get("code")
   google_provider_cfg = requests.get(GOOGLE_DISCOVERY_URL).json()
@@ -50,9 +52,35 @@ def authorize():
   # Now that we have the token, let's find and return the profile info
   userinfo_endpoint = google_provider_cfg["userinfo_endpoint"]
   uri, headers, body = client.add_token(userinfo_endpoint)
-  userinfo_response = requests.get(uri, headers=headers, data=body)
+  userinfo_response = requests.get(uri, headers=headers)
 
   # The userinfo_response object contains the user's information
   print(userinfo_response.json())
 
-  return "OK"
+  if userinfo_response.json().get("email_verified"):
+    unique_id = userinfo_response.json()["sub"]
+    users_email = userinfo_response.json()["email"]
+    picture = userinfo_response.json()["picture"]
+    users_name = userinfo_response.json()["name"]
+    user = UserModel(id=unique_id,
+                     email=users_email,
+                     name=users_name,
+                     picture=picture)
+
+    # if the user doesn't exist, create a new user
+    if not UserModel.get(unique_id):
+      user.save()
+
+    # Begin user session by logging the user in
+    login_user(user)
+
+    return redirect(url_for("pages.index"))
+
+  else:
+    return "User email not available or not verified by Google.", 400
+
+
+@auth_blueprint.route("/logout")
+def logout():
+  logout_user()
+  return redirect(url_for("pages.index"))

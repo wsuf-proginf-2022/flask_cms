@@ -16,7 +16,14 @@
     </section>
     <section class="navbar-section">
       {% if current_user.is_authenticated %}
-        Hi {{ current_user.name }}!
+        <div class="chip user-menu">
+          <img class="avatar avatar-sm" src="{{current_user.profile_pic }}" alt="">
+          {{ current_user.name }}
+          <div class="user-submenu">
+            <a href="{{ url_for('pages.create_post') }}">Create post</a>
+            <a href="{{ url_for('auth.logout') }}">Log Out</a>
+          </div>
+        </div>
       {% else %}
         <a href="{{ url_for('auth.login') }}" class="btn btn-link">Log In</a>
       {% endif %}
