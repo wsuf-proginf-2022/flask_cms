@@ -7,3 +7,4 @@ files_upload
 data.db
 .DS_Store
 Thumbs.db
+.env
